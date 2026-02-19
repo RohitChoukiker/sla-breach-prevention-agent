@@ -20,7 +20,7 @@ SessionLocal = sessionmaker(
 Base = declarative_base()
 
 
-
+import models.user
 Base.metadata.create_all(engine)
 
 def get_db():

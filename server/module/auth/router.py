@@ -15,8 +15,8 @@ auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @auth_router.post("/signup")
-async def signup(data: UserSignupRequest, db: Session = Depends(get_db)):
-    return await signup_service(data, db)
+def signup(data: UserSignupRequest, db: Session = Depends(get_db)):
+    return signup_service(data, db)
 
 
 @auth_router.post("/login")

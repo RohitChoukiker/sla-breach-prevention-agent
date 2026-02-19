@@ -18,7 +18,7 @@ async def audit_logs_service(token: str, db: Session):
     return {"logs": get_audit_logs()}
 
 
-async def signup_service(data, db: Session):
+def signup_service(data, db: Session):
     role = Role.customer
 
     try:
@@ -31,14 +31,17 @@ async def signup_service(data, db: Session):
             email=data.email,
             password=data.password,
             display_name=data.name
+            
         )
 
         new_user = User(
             firebase_uid=firebase_user.uid,
             email=data.email,
+            password=data.password,
             name=data.name,
-            role=role
-        )
+            role=Role.customer
+)
+        
 
         db.add(new_user)
         db.commit()
@@ -59,8 +62,9 @@ async def signup_service(data, db: Session):
     except AppException:
         raise
 
-    except Exception:
+    except Exception as e:
         db.rollback()
+        # print(f"{e}")
         raise AppException(500, "Internal server error")
 
 

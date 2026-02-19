@@ -5,7 +5,7 @@ class UserSignupRequest(BaseModel):
     name: str
     email: EmailStr
     password: str
-    role: str
+   
     
     
 class UserLoginRequest(BaseModel):

@@ -4,9 +4,17 @@ import uvicorn
 from module.auth.router import auth_router
 from module.ticket.router import ticket_router
 from exceptions import AppException
-
+from seed import seed_admin
+from database import SessionLocal
 
 app = FastAPI()
+
+@app.on_event("startup")
+def startup_event():
+ 
+    db = SessionLocal()
+    seed_admin(db)
+    db.close()
 
 
 @app.exception_handler(AppException)

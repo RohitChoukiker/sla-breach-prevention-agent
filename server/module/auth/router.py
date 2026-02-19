@@ -1,9 +1,12 @@
 from fastapi import APIRouter, Depends, Header
-from .util.token import extract_bearer_token
+from util.token import extract_bearer_token
 from sqlalchemy.orm import Session
 from database import get_db
-from  .dto import UserLoginRequest, UserSignupRequest , ChangeRoleRequest
+from DTO.user_dto import UserLoginRequest, UserSignupRequest , ChangeRoleRequest
 from .service import signup_service, login_service, audit_logs_service, current_user_service, update_role_service
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import Security
+security = HTTPBearer()
 
 
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
@@ -24,10 +27,10 @@ async def login(data: UserLoginRequest, db: Session = Depends(get_db)):
 
 @auth_router.get("/me")
 async def get_current_user(
-    authorization: str = Header(..., alias="Authorization"),
+    credentials: HTTPAuthorizationCredentials = Security(security),
     db: Session = Depends(get_db)
 ):
-    token = extract_bearer_token(authorization)
+    token = credentials.credentials
     return await current_user_service(token, db)
 
 
@@ -37,10 +40,10 @@ async def get_current_user(
 async def change_role(
     user_id: str,
     data: ChangeRoleRequest,
-    authorization: str = Header(..., alias="Authorization"),
+    credentials: HTTPAuthorizationCredentials = Security(security),
     db: Session = Depends(get_db)
 ):
-    token = extract_bearer_token(authorization)
+    token = credentials.credentials
     return await update_role_service(token, user_id, data.role, db)
 
 

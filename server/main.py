@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 import uvicorn
 from module.auth.router import auth_router
+from module.ticket.router import ticket_router
 from exceptions import AppException
 
 
@@ -27,7 +28,7 @@ async def health_check():
 
 
 app.include_router(auth_router)
-
+# app.include_router(ticket_router)
 
 if __name__ == "__main__":
     import uvicorn

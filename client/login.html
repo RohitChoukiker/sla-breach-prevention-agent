@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Firebase Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #f9d423, #ffcc00);
+    }
+
+    .card {
+      background: white;
+      padding: 40px;
+      border-radius: 16px;
+      width: 350px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+      text-align: center;
+    }
+
+    h2 {
+      margin-bottom: 30px;
+      color: #333;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: 2px solid #f9d423;
+      border-radius: 8px;
+      outline: none;
+      font-size: 14px;
+      transition: 0.3s;
+    }
+
+    input:focus {
+      border-color: #ffb300;
+      box-shadow: 0 0 8px rgba(255, 204, 0, 0.4);
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #ffb300;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: bold;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #e6a100;
+      transform: translateY(-2px);
+    }
+
+    pre {
+      margin-top: 20px;
+      text-align: left;
+      font-size: 11px;
+      background: #fff8dc;
+      padding: 10px;
+      border-radius: 8px;
+      max-height: 150px;
+      overflow: auto;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="card">
+    <h2>🔥 Firebase Login</h2>
+
+    <input type="email" id="email" placeholder="Enter email" />
+    <input type="password" id="password" placeholder="Enter password" />
+
+    <button onclick="login()">Login</button>
+
+    <pre id="output"></pre>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+  apiKey: "AIzaSyCDyc54XO80TihjfBjvrOVqSR9LELDC0PI",
+  authDomain: "sla-breach-prevention-agent.firebaseapp.com",
+  projectId: "sla-breach-prevention-agent",
+  storageBucket: "sla-breach-prevention-agent.firebasestorage.app",
+  messagingSenderId: "743252729664",
+  appId: "1:743252729664:web:a4b69ea0c486b63e06e4a5",
+  measurementId: "G-6B626T51B4"
+};
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    window.login = async function () {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const idToken = await userCredential.user.getIdToken();
+
+        document.getElementById("output").textContent =
+          "Firebase ID Token:\n\n" + idToken;
+
+      } catch (error) {
+        document.getElementById("output").textContent =
+          "Error: " + error.message;
+      }
+    }
+  </script>
+
+</body>
+</html>

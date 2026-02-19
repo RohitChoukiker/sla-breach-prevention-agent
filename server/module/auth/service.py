@@ -5,8 +5,7 @@ from sqlalchemy.orm import Session
 from models.user import User
 from .firebase import verify_token
 from models.enums import Role
-from .util.audit_log import log_audit_event
-from .util.audit_log import log_audit_event, get_audit_logs
+from util.audit_log import log_audit_event, get_audit_logs
 
 async def audit_logs_service(token: str, db: Session):
     decoded = verify_token(token)
@@ -19,7 +18,7 @@ async def audit_logs_service(token: str, db: Session):
     return {"logs": get_audit_logs()}
 
 
-def signup_service(data, db: Session):
+async def signup_service(data, db: Session):
     role = Role.customer
 
     try:
@@ -38,8 +37,7 @@ def signup_service(data, db: Session):
             firebase_uid=firebase_user.uid,
             email=data.email,
             name=data.name,
-            role=role,
-            is_active=True
+            role=role
         )
 
         db.add(new_user)
@@ -67,7 +65,7 @@ def signup_service(data, db: Session):
 
 
 
-def login_service(data, db: Session):
+async def login_service(data, db: Session):
 
     decoded = verify_token(data.token)
 
@@ -84,8 +82,7 @@ def login_service(data, db: Session):
     if not user:
         raise AppException(404, "User not found")
 
-    if not user.is_active:
-        raise AppException(403, "User account is inactive")
+    
 
     return {
         "message": "Login successful",
@@ -96,7 +93,7 @@ def login_service(data, db: Session):
 
 
 
-def current_user_service(token: str, db: Session):
+async def current_user_service(token: str, db: Session):
 
     decoded = verify_token(token)
 

@@ -21,6 +21,7 @@ Base = declarative_base()
 
 
 import models.user
+import models.ticket
 Base.metadata.create_all(engine)
 
 def get_db():

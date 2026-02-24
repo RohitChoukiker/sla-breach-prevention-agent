@@ -3,7 +3,8 @@ from fastapi.responses import JSONResponse
 import uvicorn
 from module.auth.router import auth_router
 from module.admin.router import admin_router
-# from module.ticket.router import ticket_router
+from module.ticket.router import ticket_router
+from module.agent.router import agent_router
 from exceptions import AppException
 from seed import seed_admin
 from database import SessionLocal
@@ -38,7 +39,8 @@ async def health_check():
 
 app.include_router(auth_router)
 app.include_router(admin_router)
-# app.include_router(ticket_router)
+app.include_router(ticket_router)
+app.include_router(agent_router)
 
 if __name__ == "__main__":
     import uvicorn

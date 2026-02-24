@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from models.enums import Role
+from typing import Literal
 
 
 class AdminCreateUserRequest(BaseModel):
@@ -14,3 +15,10 @@ class AdminUserResponse(BaseModel):
     email: EmailStr
     role: Role
     
+    
+    
+class AssignTicketRequest(BaseModel):
+    agent_id: str
+
+class OverridePriorityRequest(BaseModel):
+    priority: Literal["P1", "P2", "P3", "P4"]    

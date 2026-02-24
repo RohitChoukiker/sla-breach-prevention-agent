@@ -112,6 +112,7 @@ async def current_user_service(token: str, db: Session):
         raise AppException(404, "User not found")
 
     return {
+        "id": user.id,
         "name": user.name,
         "email": user.email,
         "role": user.role,

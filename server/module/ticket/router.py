@@ -23,7 +23,7 @@ def create_ticket(
     return service.create_ticket(db, data, user)
 
 
-@ticket_router.get("/my")
+@ticket_router.get("/my-tickets")
 def my_tickets(
     user = Depends(require_role(Role.customer)),
     db: Session = Depends(get_db)

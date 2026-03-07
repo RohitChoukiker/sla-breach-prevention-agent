@@ -44,16 +44,16 @@ class AdminService:
     db.refresh(new_user)
     return {"message": "User created successfully", "user_id": new_user.id, "role": new_user.role}
 
-  def users_list_service(admin_user, db: Session):
-    if admin_user.role != Role.admin:
-        raise AppException(403, "Only admin can view users")
-    users = db.query(User).filter(User.role != Role.admin).all()
-    return [AdminUserResponse(
-        id=u.id,
-        name=u.name,
-        email=u.email,
-        role=u.role
-    ) for u in users]
+  def users_list_service(self, admin_user, db: Session):
+      if admin_user.role != Role.admin:
+          raise AppException(403, "Only admin can view users")
+      users = db.query(User).filter(User.role != Role.admin).all()
+      return [AdminUserResponse(
+          id=u.id,
+          name=u.name,
+          email=u.email,
+          role=u.role
+      ) for u in users]
     
   def get_all_tickets(self, db):
         return db.query(Ticket).all()

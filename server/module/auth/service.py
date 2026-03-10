@@ -7,6 +7,14 @@ from .firebase import verify_token
 from models.enums import Role
 from util.audit_log import log_audit_event, get_audit_logs
 
+
+class AuthenticatedUser(dict):
+    def __getattr__(self, key):
+        try:
+            return self[key]
+        except KeyError as exc:
+            raise AttributeError(key) from exc
+
 async def audit_logs_service(token: str, db: Session):
     decoded = verify_token(token)
     if not decoded:
@@ -76,15 +84,30 @@ async def login_service(data, db: Session):
     if not decoded:
         raise AppException(401, "Invalid token")
 
-    if not decoded.get("email_verified"):
-        raise AppException(403, "Email not verified")
-
     firebase_uid = decoded["uid"]
+    email = decoded.get("email")
+    name = decoded.get("name") or (email.split("@")[0] if email else "User")
 
     user = db.query(User).filter(User.firebase_uid == firebase_uid).first()
 
     if not user:
-        raise AppException(404, "User not found")
+        if email:
+            user = db.query(User).filter(User.email == email).first()
+
+        if user:
+            user.firebase_uid = firebase_uid
+            db.commit()
+            db.refresh(user)
+        else:
+            user = User(
+                firebase_uid=firebase_uid,
+                email=email,
+                name=name,
+                role=Role.customer,
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
 
     
 
@@ -111,13 +134,13 @@ async def current_user_service(token: str, db: Session):
     if not user:
         raise AppException(404, "User not found")
 
-    return {
+    return AuthenticatedUser({
         "id": user.id,
         "name": user.name,
         "email": user.email,
         "role": user.role,
         "firebase_uid": user.firebase_uid,
-    }
+    })
 
 
 import asyncio

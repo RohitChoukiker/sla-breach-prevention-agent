@@ -14,7 +14,7 @@ def view_assigned_tickets(
     user = Depends(require_role(Role.agent)),
     db: Session = Depends(get_db)
 ):
-    return service.get_assigned_tickets(db, user.id)
+    return service.get_assigned_tickets(db, user["id"])
 
 
 @agent_router.get("/tickets/{ticket_id}")
@@ -23,7 +23,7 @@ def view_ticket(
     user = Depends(require_role(Role.agent)),
     db: Session = Depends(get_db)
 ):
-    return service.get_ticket_details(db, ticket_id, user.id)
+    return service.get_ticket_details(db, ticket_id, user["id"])
 
 
 
@@ -34,7 +34,7 @@ def update_status(
     user = Depends(require_role(Role.agent)),
     db: Session = Depends(get_db)
 ):
-    return service.update_status(db, ticket_id, request.status, user.id)
+    return service.update_status(db, ticket_id, request.status, user["id"])
 
 
 @agent_router.patch("/tickets/{ticket_id}/resolve")

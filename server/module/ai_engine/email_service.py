@@ -1,57 +1,77 @@
-import os
 import smtplib
+import os
+import logging
+
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-import time
+
+logger = logging.getLogger(__name__)
 
 
 def send_escalation_email(state):
 
-    smtp_host = os.getenv("SMTP_HOST")
-    smtp_port = int(os.getenv("SMTP_PORT", 587))
-    smtp_user = os.getenv("SMTP_USER")
-    smtp_password = os.getenv("SMTP_PASSWORD")
-    escalation_receiver = os.getenv("ESCALATION_EMAIL")
+    try:
 
-    subject = f"SLA Escalation Alert - Ticket {state['ticket_id']}"
+        print("[Email] Preparing escalation email")
 
-    body = f"""
-    SLA Breach Alert
+        ticket_id = state["ticket_id"]
+        probability = state["breach_probability"]
+        priority = state["priority"]
 
-    Ticket ID: {state['ticket_id']}
-    Probability: {state['breach_probability']}
-    Confidence: {state['confidence_score']}
-    Priority: {state['priority']}
+        sender = os.getenv("EMAIL_USER")
+        receiver = os.getenv("ESCALATION_EMAIL")
+        password = os.getenv("EMAIL_PASSWORD")
 
-    Immediate attention required.
-    """
+        smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
+        smtp_port = int(os.getenv("SMTP_PORT", 587))
 
-    message = MIMEMultipart()
-    message["From"] = smtp_user
-    message["To"] = escalation_receiver
-    message["Subject"] = subject
+        subject = f"SLA Breach Risk Alert - Ticket {ticket_id}"
 
-    message.attach(MIMEText(body, "plain"))
+        body = f"""
+Hello,
 
-    max_retries = 3
+An SLA breach risk has been detected.
 
-    for attempt in range(max_retries):
-        try:
-            server = smtplib.SMTP(smtp_host, smtp_port)
-            server.starttls()
-            server.login(smtp_user, smtp_password)
-            server.sendmail(
-                smtp_user,
-                escalation_receiver,
-                message.as_string()
-            )
-            server.quit()
+Ticket ID: {ticket_id}
+Priority: {priority}
+Breach Probability: {round(probability * 100, 2)}%
 
-            print(f"Escalation email sent for {state['ticket_id']}")
-            return
+Immediate attention is required.
 
-        except Exception as e:
-            print(f"Email send failed (attempt {attempt+1}): {e}")
-            time.sleep(2)
+Regards,
+SLA Prevention System
+"""
 
-    print("Email permanently failed after retries")
+        msg = MIMEMultipart()
+
+        msg["From"] = sender
+        msg["To"] = receiver
+        msg["Subject"] = subject
+
+        msg.attach(MIMEText(body, "plain"))
+
+        print("[Email] Connecting SMTP server...")
+
+        server = smtplib.SMTP(smtp_server, smtp_port)
+
+        server.starttls()
+
+        server.login(sender, password)
+
+        server.sendmail(
+            sender,
+            receiver,
+            msg.as_string()
+        )
+
+        server.quit()
+
+        print("[Email] Escalation email sent")
+
+        logger.info(f"Escalation email sent for ticket {ticket_id}")
+
+    except Exception as e:
+
+        print("[Email ERROR]", str(e))
+
+        logger.error(f"Email sending failed: {str(e)}")

@@ -28,8 +28,9 @@ def llm_reasoning(state):
         state["breach_probability"] = float(result["breach_probability"])
         state["confidence_score"] = float(result["confidence"])
 
-    except Exception:
-
-        state["confidence_score"] = 0.5
+    except Exception as e:
+        print("[LLM ERROR]", e)
+        state["breach_probability"] = 0.4
+        state["confidence_score"] = 0.7
 
     return state

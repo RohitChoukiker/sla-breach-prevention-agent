@@ -3,6 +3,15 @@ from exceptions import AppException
 
 class AgentService:
 
+    @staticmethod
+    def _normalize_status(status: str) -> str:
+        normalized = status.strip().lower()
+        if normalized == "resolved":
+            return "closed"
+        if normalized in {"in_progress", "closed"}:
+            return normalized
+        raise AppException(400, "Invalid status")
+
     def get_assigned_tickets(self, db, agent_id):
         return db.query(Ticket).filter(
             Ticket.assigned_agent_id == agent_id
@@ -24,7 +33,7 @@ class AgentService:
     def update_status(self, db, ticket_id, status, agent_id):
         ticket = self.get_ticket_details(db, ticket_id, agent_id)
 
-        ticket.status = status
+        ticket.status = self._normalize_status(status)
         db.commit()
         db.refresh(ticket)
 
@@ -34,7 +43,7 @@ class AgentService:
         ticket = self.get_ticket_details(db, ticket_id, agent_id)
 
         ticket.resolution_note = note
-        ticket.status = "resolved"
+        ticket.status = "closed"
 
         db.commit()
         db.refresh(ticket)

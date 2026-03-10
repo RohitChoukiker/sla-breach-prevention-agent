@@ -14,7 +14,7 @@ ticket_router = APIRouter(prefix="/tickets", tags=["Tickets"])
 service = TicketService()
 
 
-@ticket_router.post("/")
+@ticket_router.post("/create-ticket")
 def create_ticket(
     data: CreateTicketRequest,
     user = Depends(require_role(Role.customer)),
@@ -47,6 +47,15 @@ def assigned_tickets(
     db: Session = Depends(get_db)
 ):
     return service.repo.get_by_agent(db, user.id)
+
+
+@ticket_router.get("/{ticket_id}")
+def view_ticket_details(
+    ticket_id: str,
+    user = Depends(require_role(Role.customer)),
+    db: Session = Depends(get_db)
+):
+    return service.get_ticket_details(db, ticket_id, user)
 
 
 @ticket_router.patch("/{ticket_id}/status")

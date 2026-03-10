@@ -1,5 +1,6 @@
 fastapi
 uvicorn
+prometheus-client
 python-dotenv
 firebase-admin 
 sqlalchemy 
@@ -8,3 +9,7 @@ python-jose
  redis
   rq
 pinecone-client
+vertexai
+langchain
+langgraph
+sentence-transformers

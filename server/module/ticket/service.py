@@ -14,9 +14,9 @@ class TicketService:
         ticket = Ticket(
             title=request.title,
             description=request.description,
-            urgency_requested=request.urgency,
-            customer_id=user.id,
-            tenant_id=user.tenant_id,
+            urgency_requested=request.priority,
+            customer_id=user["id"],
+            tenant_id=user.get("tenant_id"),
             processing_status="pending"
         )
 
@@ -24,6 +24,20 @@ class TicketService:
 
         # 🔥 Trigger AI async processing
         publish_ticket_event(ticket.id)
+
+        return ticket
+
+    def get_ticket_details(self, db, ticket_id, user):
+
+        ticket = self.repo.get_by_id(db, ticket_id)
+
+        if not ticket:
+            raise AppException(404, "Ticket not found")
+
+        customer_id = user["id"] if isinstance(user, dict) else user.id
+
+        if ticket.customer_id != customer_id:
+            raise AppException(403, "You can only view your own tickets")
 
         return ticket
 
@@ -51,7 +65,14 @@ class TicketService:
         if ticket.assigned_agent_id != user.id:
             raise AppException(403, "Not assigned to you")
 
-        ticket.status = status
+        normalized = status.strip().lower()
+        if normalized == "resolved":
+            normalized = "closed"
+
+        if normalized not in {"open", "in_progress", "escalated", "closed"}:
+            raise AppException(400, "Invalid status")
+
+        ticket.status = normalized
 
         db.commit()
         db.refresh(ticket)

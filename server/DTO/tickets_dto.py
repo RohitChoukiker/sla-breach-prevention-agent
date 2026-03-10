@@ -21,4 +21,4 @@ class AssignTicketRequest(BaseModel):
     
     
 class UpdateTicketStatusRequest(BaseModel):
-    status: Literal["open", "in_progress", "resolved"]
+    status: Literal["open", "in_progress", "escalated", "resolved", "closed"]

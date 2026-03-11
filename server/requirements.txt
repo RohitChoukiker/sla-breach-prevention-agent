@@ -13,3 +13,5 @@ vertexai
 langchain
 langgraph
 sentence-transformers
+email-validator
+pydantic[email]

@@ -1,4 +1,4 @@
-cat << 'EOF' > README.md
+
 #  AI SLA Breach Prevention Platform
 
 An intelligent AI-powered platform that predicts and prevents SLA (Service Level Agreement) violations in real-time support ticketing systems.

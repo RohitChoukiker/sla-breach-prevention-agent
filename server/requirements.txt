@@ -1,21 +1,22 @@
 fastapi
-uvicorn
+uvicorn[standard]
 prometheus-client
 python-dotenv
-firebase-admin 
-sqlalchemy 
-psycopg2-binary 
+firebase-admin
+sqlalchemy
+psycopg2-binary
 python-jose
- redis
-  rq
-pinecone-client
-vertexai
+redis
+rq
+pinecone
+google-cloud-aiplatform
 langchain
 langgraph
 sentence-transformers
+torch
 email-validator
 pydantic[email]
-scikit-learn 
-pandas 
-numpy 
+scikit-learn
+pandas
+numpy
 joblib

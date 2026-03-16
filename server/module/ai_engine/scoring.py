@@ -1,16 +1,28 @@
-def calculate_breach_probability(urgency, similar_count):
+def calculate_breach_probability(priority, similar_count):
 
-    urgency_weight = {
-        "low": 0.2,
-        "medium": 0.5,
+    priority_weight = {
+        "low": 0.1,
+        "medium": 0.4,
         "high": 0.7,
-        "critical": 0.9
+        "critical": 0.95
     }
 
-    base = urgency_weight.get(urgency, 0.3)
-    history = min(similar_count * 0.05, 0.3)
+    base = priority_weight.get(priority, 0.3)
 
-    return min(base + history, 1.0)
+    history_signal = min(similar_count * 0.05, 0.30)
+
+    probability = base + history_signal
+
+    return min(probability, 1.0)
+
+
+def combine_scores(rule_prob, ml_prob):
+
+    if ml_prob is None:
+        return rule_prob
+
+    # safer risk strategy
+    return max(rule_prob, ml_prob)
 
 
 def calculate_priority(prob):
@@ -21,4 +33,5 @@ def calculate_priority(prob):
         return "P2"
     elif prob >= 0.45:
         return "P3"
-    return "P4"
+    else:
+        return "P4"

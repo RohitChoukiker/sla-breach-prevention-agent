@@ -1,11 +1,12 @@
 from pydantic import BaseModel
 from typing import Optional, Literal
 
+
 class CreateTicketRequest(BaseModel):
     title: str
     description: str
-    priority: Literal["low", "medium", "high"]
-  
+    priority: Literal["low", "medium", "high", "critical"]
+
 
 class TicketResponse(BaseModel):
     id: int
@@ -18,7 +19,7 @@ class TicketResponse(BaseModel):
 
 class AssignTicketRequest(BaseModel):
     agent_id: str
-    
-    
+
+
 class UpdateTicketStatusRequest(BaseModel):
     status: Literal["open", "in_progress", "escalated", "resolved", "closed"]

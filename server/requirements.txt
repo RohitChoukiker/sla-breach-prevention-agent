@@ -15,3 +15,7 @@ langgraph
 sentence-transformers
 email-validator
 pydantic[email]
+scikit-learn 
+pandas 
+numpy 
+joblib

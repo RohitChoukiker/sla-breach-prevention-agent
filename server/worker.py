@@ -3,6 +3,7 @@ from module.ai_engine.engine import AIEngine
 from models.ticket import Ticket
 
 
+
 def process_ticket_job(ticket_id: str):
 
     db = SessionLocal()

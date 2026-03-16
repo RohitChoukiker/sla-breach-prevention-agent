@@ -1,3 +1,4 @@
+
 from langgraph.graph import StateGraph, END
 from models.ticket import Ticket
 
@@ -5,6 +6,7 @@ from .state import TicketState
 from .embedding import EmbeddingService
 from .pinecone_store import PineconeService
 from .scoring import calculate_breach_probability, calculate_priority
+from .ml_model import predict_breach
 from .llm_node import llm_reasoning
 from .audit import log_trace
 from .email_service import send_escalation_email
@@ -14,9 +16,6 @@ def build_graph(db):
 
     pinecone = PineconeService()
 
-    # -------------------------
-    # LOAD TICKET
-    # -------------------------
     def load_ticket(state):
 
         ticket = db.query(Ticket).filter(
@@ -24,21 +23,18 @@ def build_graph(db):
         ).first()
 
         state["description"] = ticket.description
-        state["urgency"] = ticket.urgency_requested
+        state["priority"] = ticket.urgency_requested
         state["tenant_id"] = ticket.tenant_id
         state["loop_count"] = 0
 
         return state
 
-    # -------------------------
-    # EMBEDDING
-    # -------------------------
+   
     def embed(state):
 
         print("[Graph] Embedding step started")
 
         try:
-
             state["embedding"] = EmbeddingService.generate(
                 state["description"]
             )
@@ -46,20 +42,15 @@ def build_graph(db):
         except Exception as e:
 
             print("[Embedding ERROR]", e)
-
             state["embedding"] = [0.0] * 384
 
         return state
 
-    # -------------------------
-    # STORE EMBEDDING
-    # -------------------------
     def store(state):
 
         try:
 
             pinecone.upsert_embedding(state)
-
             print("[Pinecone] Embedding stored")
 
         except Exception as e:
@@ -68,9 +59,7 @@ def build_graph(db):
 
         return state
 
-    # -------------------------
-    # RETRIEVE CONTEXT
-    # -------------------------
+
     def retrieve(state):
 
         namespace = state.get("tenant_id") or "default"
@@ -88,16 +77,12 @@ def build_graph(db):
 
         return state
 
-    # -------------------------
-    # LLM REASONING
-    # -------------------------
+   
     def llm_node(state):
 
         return llm_reasoning(state)
 
-    # -------------------------
-    # CONFIDENCE ROUTER
-    # -------------------------
+
     def confidence_router(state):
 
         print(
@@ -115,59 +100,58 @@ def build_graph(db):
             if state["loop_count"] >= 2:
 
                 print("[Router] Max retries reached")
-
                 return "continue"
 
             state["loop_count"] += 1
-
             print("[Router] Retrying retrieval")
 
             return "retry"
 
         return "continue"
 
-    # -------------------------
-    # HYBRID SCORING
-    # -------------------------
+  
     def hybrid_scoring(state):
 
-        deterministic_prob = calculate_breach_probability(
+  
+        rule_prob = calculate_breach_probability(
             state["urgency"],
             state["similar_count"]
         )
 
-        final_prob = max(
-            deterministic_prob,
-            state["breach_probability"]
-        )
+  
+        try:
+            ml_prob = predict_breach(
+               state["priority"],
+               state["similar_count"]
+            )
+        except Exception as e:
+            print("[ML ERROR]", e)
+            ml_prob = 0.0
+
+        final_prob = max(rule_prob, ml_prob)
+
+        print("[AI] Priority:", state["priority"])
+        print("[AI] Similar tickets:", state["similar_count"])
+        print("[AI] Rule prob:", rule_prob)
+        print("[AI] ML prob:", ml_prob)
+        print("[AI] Final prob:", final_prob)
 
         state["breach_probability"] = final_prob
-
         state["priority"] = calculate_priority(final_prob)
-
-        print(
-            "[Graph] Final probability:",
-            state["breach_probability"]
-        )
 
         return state
 
-    # -------------------------
-    # ESCALATION ROUTER
-    # -------------------------
+   
     def escalation_router(state):
 
         if state["breach_probability"] > 0.80:
 
             print("[Router] Escalation triggered")
-
             return "escalate"
 
         return "persist"
 
-    # -------------------------
-    # EMAIL NODE
-    # -------------------------
+ 
     def email_node(state):
 
         print("[Graph] Sending escalation email")
@@ -176,9 +160,7 @@ def build_graph(db):
 
         return state
 
-    # -------------------------
-    # PERSIST RESULTS
-    # -------------------------
+  
     def persist(state):
 
         ticket = db.query(Ticket).filter(
@@ -202,10 +184,7 @@ def build_graph(db):
 
         return state
 
-    # -------------------------
-    # BUILD GRAPH
-    # -------------------------
-
+  
     graph = StateGraph(TicketState)
 
     graph.add_node("load", load_ticket)
@@ -246,3 +225,4 @@ def build_graph(db):
     graph.add_edge("persist", END)
 
     return graph.compile()
+
